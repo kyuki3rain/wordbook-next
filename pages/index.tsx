@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import logo from './logo.svg';
 import axios from 'axios';
 import styled from '@emotion/styled';
 import { NextPage } from 'next';
@@ -7,12 +6,26 @@ import { NextPage } from 'next';
 const ColumnContainer = styled.div({
   display: 'flex',
   flexDirection: 'column',
+  justifyContent: 'center',
+  alignContent: 'center'
 });
 
 const RowContainer = styled.div({
   display: 'flex',
   flexDirection: 'row',
+  justifyContent: 'center',
+  alignContent: 'center'
 });
+
+const Body = styled(ColumnContainer)({
+  height: '100vh',
+  width: '100vw'
+})
+
+const Padding = styled.div({
+  padding: 10
+});
+
 
 const Home: NextPage = () => {
   const [values, setValues] = useState({
@@ -32,15 +45,23 @@ const Home: NextPage = () => {
   }
 
   return (
-    <div className="App">
+    <Body className="App">
       <ColumnContainer>
-        <RowContainer>
-          <input type="text" name="word" defaultValue={values.word} onChange={handleInputChange}></input>
-          <button onClick={search}></button>
-        </RowContainer>
+        <Padding>
+          <RowContainer>
+            <input
+              type="text"
+              name="word"
+              defaultValue={values.word}
+              onChange={handleInputChange}
+              style={{marginRight: 10}}
+            ></input>
+            <button onClick={search} style={{paddingLeft: 10, paddingRight: 10}} >検索</button>
+          </RowContainer>
+        </Padding>
         <div>{result}</div>
       </ColumnContainer>
-    </div>
+    </Body>
   );
 }
 
