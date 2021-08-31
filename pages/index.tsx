@@ -48,7 +48,8 @@ const MainView = styled.div({
 })
 
 const WordBox = styled.div({
-  width: '80vw',
+  width: '100vw',
+  border: 'black 1px solid', marginBottom: -1
 })
 
 const PageText = styled.div({
@@ -74,14 +75,14 @@ const Float = styled.div<Props>`
 const ListButton = styled.div`
   display: inline-block;
   text-decoration: none;
-  background: #87befd;
+  background: #3DB2FF;
   color: #fff;
   width: 20vw;
   height: 20vw;
   border-radius: 50%;
   text-align: center;
   overflow: hidden;
-  box-shadow: 0px 0px 0px 5px #87befd;
+  box-shadow: 0px 0px 0px 5px #81cdff;
   border: dashed 1px #fff;
   transition: 0.4s;
 
@@ -174,12 +175,12 @@ const Home: NextPage = () => {
               検索
             </Button>
           </RowContainer>
-          <MainView>
+          <MainView style={{overflow: 'hidden'}}>
             <ColumnContainer>
               {
                 isShowList ?
                 <>
-                  <RowContainer style={{justifyContent: 'space-around', width: '100%', margin: 10}}>
+                  <RowContainer style={{justifyContent: 'space-around', width: '100%', height: '8vh'}}>
                     <PageText onClick={() => {
                       if (values.pageIndex == 1) return;
                       setValues({...values, pageIndex: values.pageIndex - 1});
@@ -190,13 +191,13 @@ const Home: NextPage = () => {
                       setValues({...values, pageIndex: values.pageIndex + 1});
                     }}>{values.list.length != LIST_COUNT ? "" :">"}</PageText>
                   </RowContainer>
-                  <ColumnContainer>
+                  <ColumnContainer style={{height: '80vh', justifyContent: 'start'}}>
                     {values.list.map((item, index) => {
                       return (
                         <WordBox key={index}>
-                          <RowContainer style={{justifyContent: 'space-between', border: 'black 1px solid', marginBottom: -1 }}>
-                            <div>{item.word}</div>
-                            <div style={{flex: 1, marginLeft: 15, borderLeft: 'black 1px solid'}}>{item.meaning}</div>
+                          <RowContainer style={{height: '8vh'}}>
+                            <div style={{flex: 1, paddingLeft: 5}}>{item.word}</div>
+                            <div style={{flex: 4, borderLeft: 'black 1px solid', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', paddingLeft: 10}}>{item.meaning}</div>
                           </RowContainer>
                         </WordBox>
                       );
@@ -204,23 +205,24 @@ const Home: NextPage = () => {
                   </ColumnContainer>
                 </>
               :
-              <Box>
-              {result.map((item, index) => {
-                return <React.Fragment key={index}>{item}<br/></React.Fragment>;
-              })}
-            </Box>
+                <Box>
+                  {result.map((item, index) => {
+                    return <React.Fragment key={index}>{item}<br/></React.Fragment>;
+                  })}
+                </Box>
               }
             </ColumnContainer>
           </MainView>
       </ColumnContainer>
       {
-        isShowList ||       <Float bottom={"4vw"} right={"8vw"}>
-        <ListButton>
-          <ColumnContainer style={{height: '100%'}} onClick={() => setIsShowList(true)}>
-            <FontAwesomeIcon icon={faBars} style={{width: '10vw'}} />
-          </ColumnContainer>
-        </ListButton>
-      </Float>
+        isShowList ||
+        <Float bottom={"8vw"} right={"8vw"}>
+          <ListButton>
+            <ColumnContainer style={{height: '100%'}} onClick={() => setIsShowList(true)}>
+              <FontAwesomeIcon icon={faBars} style={{width: '10vw'}} />
+            </ColumnContainer>
+          </ListButton>
+        </Float>
       }
       {
         isLoading &&
