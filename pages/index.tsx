@@ -4,7 +4,7 @@ import styled from '@emotion/styled';
 import { NextPage } from 'next';
 import db, { Word } from '../public/db';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars } from '@fortawesome/free-solid-svg-icons';
+import { faBars, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import Skeleton from 'react-loading';
 
 const ColumnContainer = styled.div({
@@ -49,7 +49,10 @@ const MainView = styled.div({
 
 const WordBox = styled.div({
   width: '100vw',
-  border: 'black 1px solid', marginBottom: -1
+  borderTop: 'black 1px solid',
+  borderBottom: 'black 1px solid',
+  marginBottom: -1,
+  fontSize: 12
 })
 
 const PageText = styled.div({
@@ -92,7 +95,7 @@ const ListButton = styled.div`
   }
 `;
 
-const LIST_COUNT = 10;
+const LIST_COUNT = 15;
 const GET_COUNT = 3;
 
 const Home: NextPage = () => {
@@ -146,12 +149,25 @@ const Home: NextPage = () => {
     })
   }
 
-  useEffect(() => {
-    const indexArray = Array(LIST_COUNT).fill(0).map((v, i) => i + (values.pageIndex - 1) * LIST_COUNT + 1);
+  const trash = (id: number) => {
+    setIsLoading(true);
     
-    db.wordbook?.bulkGet(indexArray).then((list_with_undefined) => {
+    db.wordbook?.delete(id).then(() => {
+      db.wordbook?.offset((values.pageIndex - 1) * LIST_COUNT).limit(LIST_COUNT).toArray().then((list_with_undefined) => {
+        let new_list = list_with_undefined.filter((item): item is Word => !!item);
+        setValues({...values, list: new_list })
+        setIsLoading(false);
+      })
+    })
+  }
+
+  useEffect(() => {
+    setIsLoading(true);
+
+    db.wordbook?.offset((values.pageIndex - 1) * LIST_COUNT).limit(LIST_COUNT).toArray().then((list_with_undefined) => {
       let new_list = list_with_undefined.filter((item): item is Word => !!item);
       setValues({...values, list: new_list })
+      setIsLoading(false);
     })
   }, [values.pageIndex, result]);
 
@@ -180,7 +196,7 @@ const Home: NextPage = () => {
               {
                 isShowList ?
                 <>
-                  <RowContainer style={{justifyContent: 'space-around', width: '100%', height: '8vh'}}>
+                  <RowContainer style={{justifyContent: 'space-around', width: '100%', height: '5.4vh'}}>
                     <PageText onClick={() => {
                       if (values.pageIndex == 1) return;
                       setValues({...values, pageIndex: values.pageIndex - 1});
@@ -195,9 +211,10 @@ const Home: NextPage = () => {
                     {values.list.map((item, index) => {
                       return (
                         <WordBox key={index}>
-                          <RowContainer style={{height: '8vh'}}>
-                            <div style={{flex: 1, paddingLeft: 5}}>{item.word}</div>
-                            <div style={{flex: 4, borderLeft: 'black 1px solid', overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', paddingLeft: 10}}>{item.meaning}</div>
+                          <RowContainer style={{height: '5.4vh'}}>
+                            <div style={{flex: 1, paddingLeft: 5, paddingRight: 5}}>{item.word}</div>
+                            <div style={{flex: 4, borderLeft: 'black 1px solid', paddingLeft: 5, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis'}}>{item.meaning}</div>
+                            <FontAwesomeIcon icon={faTrashAlt} style={{height: '3vh', marginRight: 10, marginLeft: 10}} onClick={() => {trash(item.id)}} />
                           </RowContainer>
                         </WordBox>
                       );
