@@ -42,7 +42,8 @@ const Button = styled.div({
 const Box = styled.div({
   padding: 30,
   overflow: 'scroll',
-  height: '90vh'
+  height: '90vh',
+  width: '100vw'
 })
 
 const MainView = styled.div({
@@ -261,7 +262,7 @@ const Home: NextPage = () => {
                       <div style={{flex: 1, fontSize: 15}}>{item}</div>
                     </RowContainer>;
                   })}
-                  {result.length > 0 && <Button onClick={save} style={{padding: 4}}>save</Button>}
+                  {result.length > 0 && <Button onClick={save} style={{padding: 4, marginTop: 20}}>save</Button>}
                 </Box>
               }
             </ColumnContainer>
