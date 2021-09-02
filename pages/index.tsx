@@ -6,6 +6,7 @@ import db, { Word } from '../public/db';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import Skeleton from 'react-loading';
+import { Checkbox } from '@material-ui/core';
 
 const ColumnContainer = styled.div({
   display: 'flex',
@@ -34,12 +35,14 @@ const Button = styled.div({
   paddingLeft: 10, paddingRight: 10, paddingTop: 3, paddingBottom: 3,
   ':active': {
     backgroundColor: 'black'
-  }
+  },
+  textAlign: 'center'
 })
 
 const Box = styled.div({
-  width: '80vw',
-  marginTop: 30
+  padding: 30,
+  overflow: 'scroll',
+  height: '90vh'
 })
 
 const MainView = styled.div({
@@ -102,49 +105,49 @@ const Home: NextPage = () => {
   const [values, setValues] = useState({
     word: "",
     list: [] as Word[],
-    pageIndex: 1
+    pageIndex: 1,
+    isLocal: false
   });
   const handleInputChange = (e: any) => {
     const target = e.target;
     const value = target.type === "checkbox" ? target.checked : target.value;
     const name = target.name;
+    
     setValues({ ...values, [name]: value });
   }
 
   const [result, setResult] = useState<Array<string>>([]);
-  const [isShowList, setIsShowList] = useState<boolean>(false);
+  const [resultChecked, setResultChecked] = useState<Array<boolean>>([...Array(100).map(() => false)]);
+  const [showList, setShowList] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const search = () => {
     setIsLoading(true);
+    setShowList(false);
     db.wordbook?.where('word').equals(values.word).toArray().then((db_result) => {
-      setIsShowList(false);
 
       if (db_result.length >= GET_COUNT) {
+        setValues({...values, isLocal: true});
         setResult(db_result.map((item) => item.meaning));
+        setIsLoading(false);
         return;
       }
 
       const isOnLine = typeof window !== 'undefined' ? navigator.onLine : false;
       if (!isOnLine) {
+        setValues({...values, isLocal: true});
         setResult(["no content in local"]);
+        setIsLoading(false);
         return;
       }
 
       axios.get(`https://polar-dawn-70145.herokuapp.com/to_english?word=${values.word}`).then((res) => {
         const items = res.data.data.split(/\t/g);
         console.log(items);
+        setResultChecked(items.map(() => false));
+        setValues({...values, isLocal: false});
         setResult(items);
-        if (items[0] == "no content"){return;}
-
-        const add_items = items.slice(0, GET_COUNT).map((item: string) => {
-          return {
-            word: values.word, meaning: item, createdAt: Date.now()
-          }
-        })
-        db.wordbook?.bulkAdd(add_items).then((index) => {
-          console.log("add word for index: " + index);
-        })
+        setIsLoading(false);
       });
     })
   }
@@ -155,25 +158,52 @@ const Home: NextPage = () => {
     db.wordbook?.delete(id).then(() => {
       db.wordbook?.offset((values.pageIndex - 1) * LIST_COUNT).limit(LIST_COUNT).toArray().then((list_with_undefined) => {
         let new_list = list_with_undefined.filter((item): item is Word => !!item);
-        setValues({...values, list: new_list })
+        
+        setValues({...values, list: new_list });
         setIsLoading(false);
       })
     })
   }
 
+  const save = () => {
+    setIsLoading(true);
+    const add_items = result.map((item: string, index: number) => {
+      if (resultChecked[index]){
+        return {
+          word: values.word, meaning: item, createdAt: Date.now()
+        } as Word
+      }
+    }).filter((item): item is Word => !!item);
+
+    console.log(add_items);
+
+    db.wordbook?.bulkAdd(add_items).then((index) => {
+      console.log("add word for index: " + index);
+      setShowList(true);
+      setIsLoading(false);
+    })
+  }
+
+  const check = (index: number) => {
+    let checked = resultChecked.slice();
+    checked[index] = !checked[index];
+    setResultChecked(checked);
+  }
+
   useEffect(() => {
+    if (!showList) {
+      return;
+    }
+
     setIsLoading(true);
 
     db.wordbook?.offset((values.pageIndex - 1) * LIST_COUNT).limit(LIST_COUNT).toArray().then((list_with_undefined) => {
       let new_list = list_with_undefined.filter((item): item is Word => !!item);
+      
       setValues({...values, list: new_list })
       setIsLoading(false);
     })
-  }, [values.pageIndex, result]);
-
-  useEffect(() => {
-    setIsLoading(false);
-  }, [result]);
+  }, [values.pageIndex, result, showList]);
 
   return (
     <Body className="App">
@@ -194,16 +224,18 @@ const Home: NextPage = () => {
           <MainView style={{overflow: 'hidden'}}>
             <ColumnContainer>
               {
-                isShowList ?
+                showList ?
                 <>
                   <RowContainer style={{justifyContent: 'space-around', width: '100%', height: '5.4vh'}}>
                     <PageText onClick={() => {
                       if (values.pageIndex == 1) return;
+                      
                       setValues({...values, pageIndex: values.pageIndex - 1});
                     }}>{values.pageIndex == 1 ? "" :"<"}</PageText>
                     <PageText>{values.pageIndex}</PageText>
                     <PageText onClick={() => {
                       if(values.list.length != LIST_COUNT) return;
+                      
                       setValues({...values, pageIndex: values.pageIndex + 1});
                     }}>{values.list.length != LIST_COUNT ? "" :">"}</PageText>
                   </RowContainer>
@@ -224,19 +256,23 @@ const Home: NextPage = () => {
               :
                 <Box>
                   {result.map((item, index) => {
-                    return <React.Fragment key={index}>{item}<br/></React.Fragment>;
+                    return <RowContainer key={index}>
+                      <Checkbox checked={resultChecked[index]} name="resultChecked" onChange={() => { check(index) }}></Checkbox>
+                      <div style={{flex: 1, fontSize: 15}}>{item}</div>
+                    </RowContainer>;
                   })}
+                  {result.length > 0 && <Button onClick={save} style={{padding: 4}}>save</Button>}
                 </Box>
               }
             </ColumnContainer>
           </MainView>
       </ColumnContainer>
       {
-        isShowList ||
+        showList ||
         <Float bottom={"8vw"} right={"8vw"}>
           <ListButton>
-            <ColumnContainer style={{height: '100%'}} onClick={() => setIsShowList(true)}>
-              <FontAwesomeIcon icon={faBars} style={{width: '10vw'}} />
+            <ColumnContainer style={{height: '100%'}} onClick={() => setShowList(true)}>
+              <FontAwesomeIcon icon={faBars} style={{width: '10vw', height: '10vw'}} />
             </ColumnContainer>
           </ListButton>
         </Float>
