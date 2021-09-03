@@ -7,6 +7,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import Skeleton from 'react-loading';
 import { Checkbox } from '@material-ui/core';
+import { Transition } from 'react-transition-group';
 
 const ColumnContainer = styled.div({
   display: 'flex',
@@ -48,7 +49,8 @@ const Box = styled.div({
 
 const MainView = styled.div({
   width: '100vw',
-  height: '90vh'
+  height: '90vh',
+  marginTop: '10vh'
 })
 
 const WordBox = styled.div({
@@ -121,6 +123,7 @@ const Home: NextPage = () => {
   const [resultChecked, setResultChecked] = useState<Array<boolean>>([...Array(100).map(() => false)]);
   const [showList, setShowList] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [mount, setMount] = useState<boolean>(false);
 
   const search = () => {
     setIsLoading(true);
@@ -131,6 +134,7 @@ const Home: NextPage = () => {
         setValues({...values, isLocal: true});
         setResult(db_result.map((item) => item.meaning));
         setIsLoading(false);
+        setMount(true);
         return;
       }
 
@@ -139,6 +143,7 @@ const Home: NextPage = () => {
         setValues({...values, isLocal: true});
         setResult(["no content in local"]);
         setIsLoading(false);
+        setMount(true);
         return;
       }
 
@@ -149,6 +154,7 @@ const Home: NextPage = () => {
         setValues({...values, isLocal: false});
         setResult(items);
         setIsLoading(false);
+        setMount(true);
       });
     })
   }
@@ -208,71 +214,75 @@ const Home: NextPage = () => {
 
   return (
     <Body className="App">
-      <ColumnContainer>
-          <RowContainer style={{width: '100vw', height: '10vh', backgroundColor: '#FFB830'}}>
-            <input
-              type="text"
-              name="word"
-              defaultValue={values.word}
-              onChange={handleInputChange}
-              style={{marginRight: 10, fontSize: 24, width: '70vw', maxWidth: 400}}
-            ></input>
-            <Button
-              onClick={search}>
-              検索
-            </Button>
-          </RowContainer>
-          <MainView style={{overflow: 'hidden'}}>
-            <ColumnContainer>
-              {
-                showList ?
-                <>
-                  <RowContainer style={{justifyContent: 'space-around', width: '100%', height: '5.4vh'}}>
-                    <PageText onClick={() => {
-                      if (values.pageIndex == 1) return;
-                      
-                      setValues({...values, pageIndex: values.pageIndex - 1});
-                    }}>{values.pageIndex == 1 ? "" :"<"}</PageText>
-                    <PageText>{values.pageIndex}</PageText>
-                    <PageText onClick={() => {
-                      if(values.list.length != LIST_COUNT) return;
-                      
-                      setValues({...values, pageIndex: values.pageIndex + 1});
-                    }}>{values.list.length != LIST_COUNT ? "" :">"}</PageText>
-                  </RowContainer>
-                  <ColumnContainer style={{height: '80vh', justifyContent: 'start'}}>
-                    {values.list.map((item, index) => {
-                      return (
-                        <WordBox key={index}>
-                          <RowContainer style={{height: '5.4vh'}}>
-                            <div style={{flex: 1, paddingLeft: 5, paddingRight: 5}}>{item.word}</div>
-                            <div style={{flex: 4, borderLeft: 'black 1px solid', paddingLeft: 5, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis'}}>{item.meaning}</div>
-                            <FontAwesomeIcon icon={faTrashAlt} style={{height: '3vh', marginRight: 10, marginLeft: 10}} onClick={() => {trash(item.id)}} />
-                          </RowContainer>
-                        </WordBox>
-                      );
-                    })}
-                  </ColumnContainer>
-                </>
-              :
-                <Box>
-                  {result.map((item, index) => {
-                    return <RowContainer key={index}>
-                      <Checkbox checked={resultChecked[index]} name="resultChecked" onChange={() => { check(index) }}></Checkbox>
-                      <div style={{flex: 1, fontSize: 15}}>{item}</div>
-                    </RowContainer>;
-                  })}
-                  {result.length > 0 && <Button onClick={save} style={{padding: 4, marginTop: 20}}>save</Button>}
-                </Box>
-              }
-            </ColumnContainer>
-          </MainView>
-      </ColumnContainer>
+      <MainView style={{overflow: 'hidden'}}>
+        <ColumnContainer>
+          {
+            showList ?
+            <>
+              <RowContainer style={{justifyContent: 'space-around', width: '100%', height: '5.4vh'}}>
+                <PageText onClick={() => {
+                  if (values.pageIndex == 1) return;
+                  
+                  setValues({...values, pageIndex: values.pageIndex - 1});
+                }}>{values.pageIndex == 1 ? "" :"<"}</PageText>
+                <PageText>{values.pageIndex}</PageText>
+                <PageText onClick={() => {
+                  if(values.list.length != LIST_COUNT) return;
+                  
+                  setValues({...values, pageIndex: values.pageIndex + 1});
+                }}>{values.list.length != LIST_COUNT ? "" :">"}</PageText>
+              </RowContainer>
+              <ColumnContainer style={{height: '80vh', justifyContent: 'start'}}>
+                {values.list.map((item, index) => {
+                  return (
+                    <WordBox key={index}>
+                      <RowContainer style={{height: '5.4vh'}}>
+                        <div style={{flex: 1, paddingLeft: 5, paddingRight: 5}}>{item.word}</div>
+                        <div style={{flex: 4, borderLeft: 'black 1px solid', paddingLeft: 5, overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis'}}>{item.meaning}</div>
+                        <FontAwesomeIcon icon={faTrashAlt} style={{height: '3vh', marginRight: 10, marginLeft: 10}} onClick={() => {trash(item.id)}} />
+                      </RowContainer>
+                    </WordBox>
+                  );
+                })}
+              </ColumnContainer>
+            </>
+          :
+            <Box>
+              {result.map((item, index) => {
+                return <RowContainer key={index}>
+                  <Checkbox checked={resultChecked[index]} name="resultChecked" onChange={() => { check(index) }}></Checkbox>
+                  <div style={{flex: 1, fontSize: 15}}>{item}</div>
+                </RowContainer>;
+              })}
+              {result.length > 0 && <Button onClick={save} style={{padding: 4, marginTop: 20}}>save</Button>}
+            </Box>
+          }
+        </ColumnContainer>
+      </MainView>
+      <Float top={"0"} left={"0"}>
+        <Transition in={mount} timeout={1000}>
+          {(state) => 
+            <RowContainer style={{width: '100vw', height: state == "entering" || state == "entered" ? '10vh': "100vh", backgroundColor: '#FFB830', transition: 'all 1s ease', zIndex: 20000}}>
+              <input
+                type="text"
+                name="word"
+                defaultValue={values.word}
+                onChange={handleInputChange}
+                style={{marginRight: 10, fontSize: 24, width: '70vw', maxWidth: 400}}
+              ></input>
+              <Button
+                onClick={search}>
+                検索
+              </Button>
+            </RowContainer>
+          }
+        </Transition>
+      </Float>
       {
         showList ||
         <Float bottom={"8vw"} right={"8vw"}>
           <ListButton>
-            <ColumnContainer style={{height: '100%'}} onClick={() => setShowList(true)}>
+            <ColumnContainer style={{height: '100%'}} onClick={() => {setShowList(true); setMount(true);}}>
               <FontAwesomeIcon icon={faBars} style={{width: '10vw', height: '10vw'}} />
             </ColumnContainer>
           </ListButton>
@@ -281,7 +291,7 @@ const Home: NextPage = () => {
       {
         isLoading &&
         <Float top={"0"} left={"0"}>
-          <ColumnContainer style={{height: '100vh', width: '100vw', opacity: 0.5, backgroundColor: 'black', pointerEvents: 'none'}}>
+          <ColumnContainer style={{height: '100vh', width: '100vw', opacity: 0.5, backgroundColor: 'black', pointerEvents: 'none', zIndex: 20}}>
             <Skeleton width="25vw" height="25vw" type="spinningBubbles"/>
           </ColumnContainer>
         </Float>
