@@ -249,12 +249,15 @@ const Home: NextPage = () => {
           :
             <Box>
               {result.map((item, index) => {
+                if(item === "no content") {
+                  return <div style={{flex: 1, fontSize: 15}}>{item}</div>
+                }
                 return <RowContainer key={index}>
                   <Checkbox checked={resultChecked[index]} name="resultChecked" onChange={() => { check(index) }}></Checkbox>
                   <div style={{flex: 1, fontSize: 15}}>{item}</div>
                 </RowContainer>;
               })}
-              {result.length > 0 && <Button onClick={save} style={{padding: 4, marginTop: 20}}>save</Button>}
+              {result.length > 0 && result[0] !== "no content" && <Button onClick={save} style={{padding: 4, marginTop: 20}}>save</Button>}
             </Box>
           }
         </ColumnContainer>
