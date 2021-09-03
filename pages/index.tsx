@@ -33,7 +33,7 @@ const Button = styled.div({
   borderRadius: 10,
   backgroundColor: '#564c46',
   fontSize: 20, color: 'white',
-  paddingLeft: '3vw', paddingRight: '3vw', paddingTop: '0.5vh', paddingBottom: '0.5vh',
+  paddingLeft: '3vw', paddingRight: '3vw', paddingTop: '1vh', paddingBottom: '1vh',
   ':active': {
     backgroundColor: 'black'
   },
