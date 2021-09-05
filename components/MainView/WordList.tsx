@@ -1,9 +1,10 @@
 import React, { Dispatch, SetStateAction, useEffect, useState } from 'react';
 import styled from '@emotion/styled';
-import db, { Word } from '../../public/db';
+import { Word } from '../../db/db';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { ColumnContainer, RowContainer } from '../common/Container';
+import { deleteWord, getList } from '../../db/helpers';
 
 const WordBox = styled.div({
   width: '100vw',
@@ -32,10 +33,8 @@ const WordList: React.FC<Props> = ({setIsLoading}) => {
   const trash = (id: number) => {
     setIsLoading(true);
     
-    db.wordbook?.delete(id).then(() => {
-      db.wordbook?.offset((values.pageIndex - 1) * LIST_COUNT).limit(LIST_COUNT).toArray().then((list_with_undefined) => {
-        let new_list = list_with_undefined.filter((item): item is Word => !!item);
-        
+    deleteWord(id).then(() => {
+      getList(values.pageIndex, LIST_COUNT).then((new_list: Word[]) => {
         setValues({...values, list: new_list });
         setIsLoading(false);
       })
@@ -44,13 +43,10 @@ const WordList: React.FC<Props> = ({setIsLoading}) => {
 
   useEffect(() => {
     setIsLoading(true);
-
-    db.wordbook?.offset((values.pageIndex - 1) * LIST_COUNT).limit(LIST_COUNT).toArray().then((list_with_undefined) => {
-      let new_list = list_with_undefined.filter((item): item is Word => !!item);
-      
-      setValues({...values, list: new_list })
+    getList(values.pageIndex, LIST_COUNT).then((new_list: Word[]) => {
+      setValues({...values, list: new_list });
       setIsLoading(false);
-    })
+    });
   }, [values.pageIndex]);
 
   return (

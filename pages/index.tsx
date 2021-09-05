@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import styled from '@emotion/styled';
 import { NextPage } from 'next';
-import db, { Word } from '../public/db';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 import Skeleton from 'react-loading';
@@ -10,6 +9,7 @@ import WordList from '../components/MainView/WordList';
 import ResultList from '../components/MainView/ResultList';
 import { ColumnContainer } from '../components/common/Container';
 import SearchTab from '../components/SearchTab';
+import { addMeanings, searchWord } from '../db/helpers';
 
 const Body = styled(ColumnContainer)({
   height: '100vh',
@@ -91,15 +91,11 @@ const Home: NextPage = () => {
 
   const search = () => {
     setIsLoading(true);
-    db.wordbook?.where('word').equals(values.word).toArray().then((db_result) => {
-      if (db_result.length >= GET_COUNT) {
-        finishSearch(true, db_result.map((item) => item.meaning));
-        return;
-      }
-
+    searchWord(values.word).then((meanings: string[]) => {
       const isOnLine = typeof window !== 'undefined' ? navigator.onLine : false;
-      if (!isOnLine) {
-        finishSearch(true, ["no content in local"]);
+
+      if (meanings.length >= GET_COUNT || !isOnLine) {
+        finishSearch(true, meanings);
         return;
       }
 
@@ -111,21 +107,11 @@ const Home: NextPage = () => {
 
   const save = () => {
     setIsLoading(true);
-    const add_items = result.map((item: string, index: number) => {
-      if (resultChecked[index]){
-        return {
-          word:  values.word, meaning: item, createdAt: Date.now()
-        } as Word
-      }
-    }).filter((item): item is Word => !!item);
 
-    console.log(add_items);
-
-    db.wordbook?.bulkAdd(add_items).then((index) => {
-      console.log("add word for index: " + index);
+    addMeanings(result.filter((_, index) => resultChecked[index]), values.word).then(() => {
       setShowList(true);
       setIsLoading(false);
-    })
+    });
   }
 
   return (

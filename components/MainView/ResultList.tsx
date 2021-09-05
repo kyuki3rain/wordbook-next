@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import styled from '@emotion/styled';
-import db, { Word } from '../../public/db';
 import { Checkbox } from '@material-ui/core';
 import { RowContainer } from '../common/Container';
 
@@ -43,7 +42,7 @@ const ResultList: React.FC<Props> = ({ result, save, resultChecked, setResultChe
             return <div style={{flex: 1, fontSize: 15}}>{item}</div>
         }
         return <RowContainer key={index}>
-            <Checkbox checked={resultChecked[index]} name="resultChecked" onChange={() => { check(index) }}></Checkbox>
+            <Checkbox checked={resultChecked[index] || false} name="resultChecked" onChange={() => { check(index) }}></Checkbox>
             <div style={{flex: 1, fontSize: 15}}>{item}</div>
         </RowContainer>;
         })}
