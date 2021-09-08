@@ -4,8 +4,8 @@
     "display": "fullscreen",
     "scope": "/",
     "start_url": "/?source=pwa",
-    "name": "wordbook-next-pwa",
-    "short_name": "WNP",
+    "name": "英和単語帳",
+    "short_name": "EtoJ Wordbook",
     "icons": [
         {
             "src": "/icon-192x192.png",
